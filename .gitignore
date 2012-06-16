@@ -25,3 +25,13 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+
+#Linux
+.*
+!.gitignore
+*~
+
+#vim
+.*.sw[a-z]
+*.un~
+Session.vim
