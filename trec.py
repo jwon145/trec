@@ -7,31 +7,34 @@ import os
 
 version = "0.1"
 
-def getopts():
-	parser = optparse.OptionParser("usage: %prog [arguments]")
-	parser.add_option("-v", "--version", help="print version info", action="store_true", dest="show_version", default=False)
-	(options, remainder) = parser.parse_args()
-	return options
-
-def start_timer():
+def start_timer(subject):
 	try:
 		count = 0
 		while True:
 			time.sleep(1)
 			count += 1
 	except KeyboardInterrupt:
-		print "%d" % (count)
+		print "%s: %d" % (subject, count)
 
-def show_version():
+def show_version(args, i, dont, use):
 	print "%s v%s" % (os.path.basename(sys.argv[0]), version)
+	sys.exit()
+
+def getopts():
+	parser = optparse.OptionParser("usage: %prog [class] [week]")
+	parser.add_option("-v", "--version", help="print version info", action="callback", callback=show_version)
+	(options, args) = parser.parse_args()
+	if len(args) != 2:
+		parser.print_help()
+		sys.exit()
+	return (options, args)
 
 def main():
-	options = getopts()
-	if options.show_version:
-		show_version()
-		sys.exit()
+	(options, args) = getopts()
+	subject = args[0]
+	week = args[1]
 
-	start_timer()
+	start_timer(subject)
 
 if __name__ == "__main__":
 	main()
