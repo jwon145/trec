@@ -6,7 +6,6 @@ import sqlite3
 import sys
 import os
 
-version = "0.1"
 default_db = "hours.db"
 table_id = "12s1"
 db_conn = None
@@ -29,14 +28,9 @@ def start_timer(subject, week):
 		print "%s %s: %d" % (subject, week, count)
 		# print "INSERT INTO times%s VALUES(%d, strftime('\%s', 'now'), %d)" % (, count, )
 
-def show_version(args, i, dont, use): # but are necessary for optparse's callback function
-	print "%s v%s" % (os.path.basename(sys.argv[0]), version)
-	sys.exit()
-
 def args_handler():
-	parser = optparse.OptionParser("usage: %prog [class] [week]")
+	parser = optparse.OptionParser("usage: %prog [class] [week]", version="%prog v0.1")
 	parser.add_option("-i", "--init", help="initialise a new table", action="callback", callback=init_db)
-	parser.add_option("-v", "--version", help="print version info", action="callback", callback=show_version)
 	return parser.parse_args()[1] # returns only the positional arguments (ie. class and week) in a list
 
 def main():
