@@ -34,27 +34,33 @@ class init_db(argparse.Action):
 				init_weeks.append((None, week))
 			cur.executemany("INSERT INTO weeks%s VALUES(?, ?)" % (semm_tag), init_weeks)
 
-			cur.execute("CREATE TABLE times%s (course_id integer, date integer, time integer, week_id integer, foreign key(course_id) references courses%s(id), foreign key(week_id) references weeks%s(id))" % (semm_tag, semm_tag, semm_tag))
+			cur.execute("CREATE TABLE times{0} (course_id integer, date integer, time integer, week_id integer, foreign key(course_id) references courses{0}(id), foreign key(week_id) references weeks{0}(id))".format(semm_tag))
 		sys.exit()
 
 def start_timer(course, week):
 	conn = load_db()
-	try:
-		count = 0
-		while True:
-			time.sleep(1)
-			count += 1
-	except KeyboardInterrupt:
-		#print "%s %s: %d" % (course, week, count)
-		with conn:
-			cur = conn.cursor()
-			cur.execute("INSERT INTO times%s VALUES(%d, strftime('%%s', 'now'), %d, %d)" % (semm_tag, get_id(conn, "course", course), count, get_id(conn, "week", week)))
+	with conn:
+		cur = conn.cursor()
+		course_id = get_id(conn, "course", course)
+		week_id = get_id(conn, "week", week)
+		try:
+			count = 0
+			while True:
+				time.sleep(1)
+				count += 1
+		except KeyboardInterrupt:
+			cur.execute("INSERT INTO times%s VALUES(%d, strftime('%%s', 'now'), %d, %d)" % (semm_tag, course_id, count, week_id))
 
 def get_id(conn, table, tag):
 	with conn:
 		cur = conn.cursor()
-		cur.execute("SELECT * from %ss%s where name = '%s'" % (table, semm_tag, tag))
-		return cur.fetchone()[0]
+		cur.execute("SELECT * from %ss%s where name = ?" % (table, semm_tag), (tag,))
+		result = cur.fetchone()
+		if result is None:
+			sys.stderr.write("Error: Invalid tag '%s'.\n" % (tag))
+			sys.exit()
+		return result[0]
+
 
 def args_handler():
 	parser = argparse.ArgumentParser()
