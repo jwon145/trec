@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import time
-import optparse
+import argparse
 import sqlite3
 import sys
 import os
@@ -10,13 +10,14 @@ default_db = "hours.db"
 table_id = "12s1"
 db_conn = None
 
-def init_db(args, i, dont, use): # but are necessary for optparse's callback function
-	print "CREATE TABLE courses%s(id integer primary key asc autoincrement, name string);" % (table_id)
-	classes = list(raw_input("List your class tags delimited by spaces (eg \"cs3901 cs4141 cs9242 en1811\"):\n").rsplit())
-	for c in classes:
-		print "INSERT INTO courses%s VALUES(null, \"%s\")" % (table_id, c)
-	print "CREATE TABLE times%s (cid integer, date integer, time integer, foreign key(cid) references courses%s(id));" % (table_id, table_id)
-	sys.exit()
+class init_db(argparse.Action):
+	def __call__(self, parser, namespace, values, opt_str):
+		print "CREATE TABLE courses%s(id integer primary key asc autoincrement, name string);" % (table_id)
+		classes = list(raw_input("List your class tags delimited by spaces (eg \"cs3901 cs4141 cs9242 en1811\"):\n").rsplit())
+		for c in classes:
+			print "INSERT INTO courses%s VALUES(null, \"%s\")" % (table_id, c)
+		print "CREATE TABLE times%s (cid integer, date integer, time integer, foreign key(cid) references courses%s(id));" % (table_id, table_id)
+		sys.exit()
 
 def start_timer(subject, week):
 	try:
@@ -29,19 +30,16 @@ def start_timer(subject, week):
 		# print "INSERT INTO times%s VALUES(%d, strftime('\%s', 'now'), %d)" % (, count, )
 
 def args_handler():
-	parser = optparse.OptionParser("usage: %prog [class] [week]", version="%prog v0.1")
-	parser.add_option("-i", "--init", help="initialise a new table", action="callback", callback=init_db)
-	return parser.parse_args()[1] # returns only the positional arguments (ie. class and week) in a list
+	parser = argparse.ArgumentParser()
+	parser.add_argument('-v', '--version', action='version', version='%(prog)s v0.1')
+	parser.add_argument('-i', '--init', help="initialise a new table", action=init_db)
+	parser.add_argument("klass", help="class to record")
+	parser.add_argument("week", help="week to record")
+	return parser.parse_args()
 
 def main():
 	args = args_handler()
-	if len(args) != 2:
-		sys.stderr.write("Error: Not enough arguments.\n\nSee `%s --help` for more information.\n" % (os.path.basename(sys.argv[0])))
-		sys.exit()
-
-	subject = args[0]
-	week = args[1]
-	start_timer(subject, week)
+	start_timer(args.klass, args.week)
 
 if __name__ == "__main__":
 	main()
